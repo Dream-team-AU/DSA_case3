@@ -33,24 +33,31 @@ P2 = abs(X2).^2;
 
 %% første plots 
 figure
-subplot(2,2,1:2)
+subplot(3,2,1:2)
 plot(n,x), grid
 xlabel('n'), ylabel('x(n)'), title('hele signalet DC-signal')
 
-%Plot af effekt
-subplot(2,2,3);
+%Plot af effekter
+subplot(3,2,3);
 plot(k1*fs/N1, 10*log10(P1))
 title('Effektspektrum, første del signal')
 xlim([0 fs/2])
-
-%Plot af effekt
-subplot(2,2,4);
+subplot(3,2,4);
 plot(k2*fs/N2, 10*log10(P2))
 title('Effektspektrum, andet del signal')
 xlim([0 fs/2])
 
+%plot af histogrammer
+subplot(3,2,5)
+histogram(x1)
+title('histogram første del')
+
+subplot(3,2,6)
+histogram(x2)
+title('histogram anden del')
+
 %% MA-filter (ikke-rekursivt) variabler
-M = 16;    % filterkoefficienter
+M = 10;    % filterkoefficienter
 hMA = 1/M*ones(1,M); % MA-filter, filterkoefficienter
 
 hMA_imp_resp  = hMA;                        % impulsrespons
@@ -74,7 +81,7 @@ plot(n1,x1), grid
 xlabel('n'), ylabel('x(n)'), title('første del af DC-signal')
 
 subplot(2,6,4:6)
-histogram(x1)
+histogram(yMA1)
 title('histogram')
 
 subplot(2,6,7:10)
@@ -100,7 +107,7 @@ plot(n2,x2), grid
 xlabel('n'), ylabel('x(n)'), title('anden del af DC-signal')
 
 subplot(2,6,4:6)
-histogram(x2)
+histogram(yMA2)
 title('histogram')
 
 subplot(2,6,7:10)
