@@ -126,7 +126,7 @@ text(0,0.5,...
      ['Reduktion i støjeffekt: ' num2str(10*log10(var_x2/var_yMA2)) ' dB']})
  axis off
  
- %% Eksponentielt midlingsfilter (rekursivt) variabler
+%% Eksponentielt midlingsfilter (rekursivt) variabler
 alpha = 0.01;  % Lyons formel (11-31)
 
 % b skabes da filter funktionen giver problemer med at filtere samme værdi
@@ -143,10 +143,7 @@ HExp2 = fft(b,N2)./fft(a,N2);                 % frekvensrespons
 yExp1 = filter(b,a,x1);                      % filtrerer 1 inputsignal
 yExp2 = filter(b,a,x2);                      % filtrerer 2 inputsignal
 
-var_x1 = var(x(M:N1));        % varians i signal i del efter transientrespons
 var_yExp1 = var(yExp1(M:N1));  % varians i signal i del efter transientrespons
-
-var_x2 = var(x(M:N2));        % varians i signal i del efter transientrespons
 var_yExp2 = var(yExp2(M:N2));  % varians i signal i del efter transientrespons
 
  %% plotting for første eksponentielle midlingsfilter (rekursivt) 
@@ -167,9 +164,6 @@ text(0,0.5,...
      ['Reduktion i støjeffekt: ' num2str(10*log10(var_x1/var_yExp1)) ' dB']})
  axis off
  
- disp('* Eks. mid.-filter trade-off: Mindre alpha giver bedre dæmpning,')
- disp('  men langsommere respons')
- 
   %% plotting for andet eksponentielle midlingsfilter (rekursivt) 
 figure('name', 'Første eksponentielle midlingsfilter-filter')
 subplot(3,1,1:2)
@@ -187,6 +181,3 @@ text(0,0.5,...
      ['Reduktion i støjeffekt: ' num2str((var_x2/var_yExp2)) ' gange'],...
      ['Reduktion i støjeffekt: ' num2str(10*log10(var_x2/var_yExp2)) ' dB']})
  axis off
- 
- disp('* Eks. mid.-filter trade-off: Mindre alpha giver bedre dæmpning,')
- disp('  men langsommere respons')
