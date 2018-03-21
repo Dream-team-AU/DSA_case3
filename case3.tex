@@ -78,16 +78,34 @@ framexleftmargin=15pt}
 \label{sec:matlab1}
 
 \begin{lstlisting}
-n = 0:N-1;
+%% Indlæsning af data, samt skabelse af 2 dele af disse
+
 load('vejecelle_data.mat');
 x = vejecelle_data;
 
-figure
-plot(n,x), grid
-xlabel('n'), ylabel('x(n)'), title('hele signalet DC-signal')
+x1 = vejecelle_data(1:1000);
+n1 = (1:1000);
+N1 = 1000;
+k1 = 0:N1-1;
+
+x2 = vejecelle_data(1050:2500);
+n2 = (1050:2500);
+N2 = 1450;
+k2 = 0:N2-1;
+
+%udregning af effekt
+X1 = fft(x1,N1)*2/N1; 
+X2 = fft(x2,N2)*2/N2; 
+% effektspektrum, P(k) = |X(k)|^2
+P1 = abs(X1).^2;
+P2 = abs(X2).^2;
 \end{lstlisting}
 
-Det første tiltag der blev lavet for at løse opgaven var at se signalet fysisk, dette blev derfor gjort ved først at loade signalet ind via load funktionen, navnet på signalet blev x, og denne blev plottet, plottet ses på figur 
+Det første tiltag der blev lavet for at løse opgaven var at se signalet fysisk, dette blev derfor gjort ved først at loade signalet ind via load funktionen, der ses øverst  på billede \ref{fig:helesignal} hvordan selve signalet ser ud, nu kan der påbegyndes analyse af dette, der ønskes analyse af henholdsvist første halvdel, hvilket er vurderet fra 0 til 1000 samples, samt anden halvdel som er vurderet til 1050 til 2500 samples.
+
+effekten af disse del signalet er udregnet ved at tage fft af x1 samt x2 til N1 samt N2 som ligeledes var blevet tilpasset længden hertil ganget med 2 gange samme variabler (N1 samt N2)
+absolut værdien hertil blev så udregnet, da denne skulle plottes for at se effektspektrummet.
+
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.8\textwidth]{rod/startsignal.png}
@@ -95,11 +113,22 @@ Det første tiltag der blev lavet for at løse opgaven var at se signalet fysisk
   \label{fig:helesignal}
 \end{figure}
 
-Der ses på billede \ref{fig:helesignal} hvordan selve signalet ser ud, nu kan der påbegyndes analyse af dette, der ønskes analyse af henholdsvist første halvdel, hvilket er vurderet fra 0 til 1000 samples, samt anden halvdel som er vurderet til 1050 til 2500 samples.
+der ses på \ref{fig:helesignal} plottet af henholdsvist hele DC signalet, samt tidligere udregning af effektspektum, og et histogram plot lavet med histogram funktionen.
+Der vurderes udfra disse effektspektre dette sagtens kan være normaltfordelt hvidstøj.
+Ligeledes vurderes der de to middelværdier er henholdsvist 1100 samt 1400.
+
+\subsection{afstand imellem bit niveauer i gram}
+\label{sec:afstand}
+
+\section{Design af midlingsfilter}
+\label{sec:Design}
+
+\subsection{påsætning af MA filter}
+\label{sec:påsæt}
 
 \begin{lstlisting}
-%% MA-filter (ikke-rekursivt) for første del
-M = 16;    % filterkoefficienter
+%% MA-filter (ikke-rekursivt) variabler
+M = 10;    % filterkoefficienter
 hMA = 1/M*ones(1,M); % MA-filter, filterkoefficienter
 
 hMA_imp_resp  = hMA;                        % impulsrespons
@@ -118,16 +147,18 @@ var_yMA2 = var(yMA2(M:N2));% varians i 2 signal i del efter transientrespons
 \end{lstlisting}
 
 følgende kode sætter filterkoefficienter op, udregner impulsrespons, stepresons, længde af transientrespons, frekvensrespons, samt lægger MA filteret på de to del signaler, og afslutningsvist udregner variansen ud med funktionen var, således dette kan plottes
+variablen yMA1 samt yMA2 er vigtige, da disse skal anvendes til plotning af histogrammet efter filteret er påsat.
+Der kan ses på koden der i første omgang er forsøgt at indsætte 10 filter koefficienter i koden her, plotsene med flere koeffecienter er ganske enkelt variablen M der er udskiftet med hvor end mange filterkoefficienter plotsene oplyses til at have.
 
 \begin{lstlisting}
-%% --- plotting for første signal ---
+%% --- plotting for første MA filter signal ---
 figure('name', 'første MA-filter')
 subplot(2,6,1:3)
 plot(n1,x1), grid
 xlabel('n'), ylabel('x(n)'), title('første del af DC-signal')
 
 subplot(2,6,4:6)
-histogram(x1)
+histogram(yMA1)
 title('histogram')
 
 subplot(2,6,7:10)
@@ -147,47 +178,58 @@ text(0,0.5,...
  axis off
 \end{lstlisting}
 
-Da koden for plots af første del af signalet, er det samme som plotsene for anden del, med den undtagelse x1 samt N1 er udskiftet med x2 og N2, redegøres der kun for første del.
-første plot er signalet for sig selv, dette kommer til at udgøre halvdelen af øverste skærm da subplottet har 2*6 vinduer.
-herefter anvendes funktionen histogram til at plotte histogrammet.
-3 plot er signalet henholdsvist før og efter MA filteret er tilsat, således dæmpningen som konsekvens af dette filter bliver tydeligtgjort.
-Sidste subplot er udregning af transientresponset, hvor tidligere oprettede variabel L_MA_trans_resp bliver omskrevet til et character array via num2str funktionen.
-herefter printes støjeffekten for de to signaler, num2str er igen anvendt, og her printes ligeledes tidligere udregnet variabler var_x1 samt var_yMA1.
-disse bliver divideret med hinanden for at få reduktionen i støjeffekten herefter, og afslutningsvist hvor mange gange dette bliver dæmpet henholdsvist både i decimal værdi, samt med hvor mange decibel.
-
-\subsection{plots}
-\label{sec:plots}
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.8\textwidth]{rod/startsignal.png}
-  \caption{starsignal}
-  \label{fig:2signaler}
-\end{figure}
-
-figur \ref{fig:2signaler} viser plots af de to isolerede dele af oprindelige signal der ønskes analyseret, der kan her ses middelværdien på første del af signalet er på 1100 hertz (anden del er på 1400)
-
-\begin{figure}[h!]
-  \centering
-  \includegraphics[width=0.8\textwidth]{rod/1MAfilter.png}
-  \caption{plots af første signal}
-  \label{fig:1signalplot}
-\end{figure}
-
-figur \ref{fig:1signalplot} viser plots af første del af signalet, her ses på histogrammet der er en middelværdi på ca 1100, dette passer meget godt overens med plottet af frekvenserne i signalet, da 1100 også ser ud til at være ca. midten her.
-på 3 subplot ses det oprindelige signal igen med blå, her er den røde linje output signalet efter MA filteret er tilsat, dette er nu noget mere udjævnet, hvilket leder til konklusionen at der må være en del normaltfordelt støj på signalet.
-
-\subsection{afstand imellem bit niveauer i gram}
-\label{sec:afstand}
-
-\section{Design af midlingsfilter}
-\label{sec:Design}
-
-\subsection{forsøg med midlingsfiltre}
-\label{sec:forsøg}
+følgende kode beskriver plotningen af MA filteret for første del, plotningen for anden del er identisk, og er derfor ikke beskrevet da den eneste forskel er N1 er udskfitet med N2, og ligeledes med x1 og x2.
+første plot der sker viser del signalet der isoleret set er blevet kigget på, herefter plottes histogrammet med variablen yMA1 som i praksis er variablen der er blevet oprettet som konsekvens af påsætningen af filteret.
+Herefter sammenlignes signalet før filteret blev udregnet med signalet efter, forhåbentligt skulle det gerne være fladet ud som efter filterets påvirkning.
+afslutningsvist udregnes transientrespons, støjeffekt samt reduktion i støjeffekt i henholdsvist antal gange, samt i decibel.
 
 \subsection{beregning af max FIR længde}
 \label{sec:beregning}
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{rod/1MAfilter10.png}
+  \caption{MA filter med 10 filter koefficienter}
+  \label{fig:MA10}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{rod/1MAfilter50.png}
+  \caption{MA filter med 50 filter koefficienter}
+  \label{fig:MA50}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{rod/1MAfilter100.png}
+  \caption{MA filter med 100 filter koefficienter}
+  \label{fig:MA100}
+\end{figure}
+
+billede \ref{fig:MA10} \ref{fig:MA50} \ref{fig:MA100} viser de 3 MA filtre med henholdsvist 10, 50 og 100 filterkoefficienter, det der kan konstateres er reduktionen af støjeffekten bliver bedre, dæmpningen bliver bedre, men der går længere tid før outputtet giver respons da det tager fysisk længere tid for filteret at behandle signalet.
+Altså variansen falder, når vi tager middelværdien af flere signaler, men indsvingningstiden stiger, så det er en priotering om hvad man vil have herfra.
+Såfremt indsvingningstiden ville være på max 100 ms, ville det selfølgeligt afhænge af valgte samplingsfrekvens, den valgte i dette tilfælde er 300, så denne er hvad der udregnes med.
+
+Der er taget udgangspunkt i tidligere givne formel for udregning på billede billede \ref{fig:formel}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.2\textwidth]{rod/formel.png}
+  \caption{formel for udregning af max antal MA-filtre}
+  \label{fig:formel}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{rod/Max_udregning.png}
+  \caption{max antal filtre}
+  \label{fig:max_filtre}
+\end{figure}
+
+Der kan udfra dette konkluderes 30 ville være maximalt antal filterkoefficienter der ville kunne anvendes for at opnår ønskede indsvingningstid, dog med forbehold af fs er 300, såfremt denne ændres, ville max antal indsvingningstid ligeledes ændre sig.
+
+\subsection{eksponentielt midlingsfilter}
+\label{sec:alfa}
 
 \subsection{Alfa's betydning}
 \label{sec:alfa}
