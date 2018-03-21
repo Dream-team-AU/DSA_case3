@@ -13,6 +13,7 @@ n = 0:N-1;
 
 load('vejecelle_data.mat');
 x = vejecelle_data;
+
 x1 = vejecelle_data(1:1000);
 n1 = (1:1000);
 N1 = 1000;
@@ -29,7 +30,6 @@ X2 = fft(x2,N2)*2/N2;
 % effektspektrum, P(k) = |X(k)|^2
 P1 = abs(X1).^2;
 P2 = abs(X2).^2;
-
 
 %% første plots 
 figure
@@ -57,7 +57,7 @@ histogram(x2)
 title('histogram anden del')
 
 %% MA-filter (ikke-rekursivt) variabler
-M = 10;    % filterkoefficienter
+M = 100;    % filterkoefficienter
 hMA = 1/M*ones(1,M); % MA-filter, filterkoefficienter
 
 hMA_imp_resp  = hMA;                        % impulsrespons
@@ -74,7 +74,7 @@ var_yMA1 = var(yMA1(M:N1));% varians i 1 signal i del efter transientrespons
 var_x2 = var(x2(M:N2));    % varians i 2 signal i del efter transientrespons
 var_yMA2 = var(yMA2(M:N2));% varians i 2 signal i del efter transientrespons
 
-%% --- plotting for første signal ---
+%% --- plotting for første MA filter signal ---
 figure('name', 'første MA-filter')
 subplot(2,6,1:3)
 plot(n1,x1), grid
@@ -100,7 +100,7 @@ text(0,0.5,...
      ['Reduktion i støjeffekt: ' num2str(10*log10(var_x1/var_yMA1)) ' dB']})
  axis off
 
-%% --- plotting for andet signal ---
+%% --- plotting for andet MA filter signal ---
 figure('name', 'andet MA-filter')
 subplot(2,6,1:3)
 plot(n2,x2), grid
@@ -125,3 +125,68 @@ text(0,0.5,...
      ['Reduktion i støjeffekt: ' num2str((var_x2/var_yMA2)) ' gange'],...
      ['Reduktion i støjeffekt: ' num2str(10*log10(var_x2/var_yMA2)) ' dB']})
  axis off
+ 
+ %% Eksponentielt midlingsfilter (rekursivt) variabler
+alpha = 0.01;  % Lyons formel (11-31)
+
+% b skabes da filter funktionen giver problemer med at filtere samme værdi
+% 2 gange
+b = alpha;
+a = [1 -(1-alpha)];
+
+hExp_imp_resp  = filter(b,a,[1 zeros(1,4*M-1)]); % impulsrespons
+hExp_step_resp = filter(b,a,ones(1,4*M));        % steprespons
+
+HExp1 = fft(b,N1)./fft(a,N1);                 % frekvensrespons
+HExp2 = fft(b,N2)./fft(a,N2);                 % frekvensrespons
+
+yExp1 = filter(b,a,x1);                      % filtrerer 1 inputsignal
+yExp2 = filter(b,a,x2);                      % filtrerer 2 inputsignal
+
+var_x1 = var(x(M:N1));        % varians i signal i del efter transientrespons
+var_yExp1 = var(yExp1(M:N1));  % varians i signal i del efter transientrespons
+
+var_x2 = var(x(M:N2));        % varians i signal i del efter transientrespons
+var_yExp2 = var(yExp2(M:N2));  % varians i signal i del efter transientrespons
+
+ %% plotting for første eksponentielle midlingsfilter (rekursivt) 
+figure('name', 'Første eksponentielle midlingsfilter-filter')
+subplot(3,1,1:2)
+plot(n1,x1), grid, hold on
+plot(n1,yExp1,'linewidth',2)
+xlabel('n'), ylabel('x(n)')
+title(['Eksponentielt midlingsfilter, \alpha = ' num2str(alpha)])
+legend('input','output')
+
+subplot(3,1,3)
+text(0,0.5,...
+    {['Eksponentielt midlingsfilter, \alpha = ' num2str(alpha)],...
+     ['Støjeffekt i inputsignal (varians):  ' num2str(var_x1)],...
+     ['Støjeffekt i outputsignal (varians): ' num2str(var_yExp1)],...
+     ['Reduktion i støjeffekt: ' num2str((var_x1/var_yExp1)) ' gange'],...
+     ['Reduktion i støjeffekt: ' num2str(10*log10(var_x1/var_yExp1)) ' dB']})
+ axis off
+ 
+ disp('* Eks. mid.-filter trade-off: Mindre alpha giver bedre dæmpning,')
+ disp('  men langsommere respons')
+ 
+  %% plotting for andet eksponentielle midlingsfilter (rekursivt) 
+figure('name', 'Første eksponentielle midlingsfilter-filter')
+subplot(3,1,1:2)
+plot(n2,x2), grid, hold on
+plot(n2,yExp2,'linewidth',2)
+xlabel('n'), ylabel('x(n)')
+title(['Eksponentielt midlingsfilter, \alpha = ' num2str(alpha)])
+legend('input','output')
+
+subplot(3,1,3)
+text(0,0.5,...
+    {['Eksponentielt midlingsfilter, \alpha = ' num2str(alpha)],...
+     ['Støjeffekt i inputsignal (varians):  ' num2str(var_x2)],...
+     ['Støjeffekt i outputsignal (varians): ' num2str(var_yExp2)],...
+     ['Reduktion i støjeffekt: ' num2str((var_x2/var_yExp2)) ' gange'],...
+     ['Reduktion i støjeffekt: ' num2str(10*log10(var_x2/var_yExp2)) ' dB']})
+ axis off
+ 
+ disp('* Eks. mid.-filter trade-off: Mindre alpha giver bedre dæmpning,')
+ disp('  men langsommere respons')
