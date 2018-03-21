@@ -16,16 +16,40 @@ x = vejecelle_data;
 x1 = vejecelle_data(1:1000);
 n1 = (1:1000);
 N1 = 1000;
+k1 = 0:N1-1;
+
 x2 = vejecelle_data(1050:2500);
 n2 = (1050:2500);
 N2 = 1450;
+k2 = 0:N2-1;
 
+%udregning af effekt
+X1 = fft(x1,N1)*2/N1; 
+X2 = fft(x2,N2)*2/N2; 
+% effektspektrum, P(k) = |X(k)|^2
+P1 = abs(X1).^2;
+P2 = abs(X2).^2;
+
+
+%% første plots 
 figure
-subplot(1,2,1:2)
+subplot(2,2,1:2)
 plot(n,x), grid
 xlabel('n'), ylabel('x(n)'), title('hele signalet DC-signal')
 
-%% MA-filter (ikke-rekursivt) for første del
+%Plot af effekt
+subplot(2,2,3);
+plot(k1*fs/N1, 10*log10(P1))
+title('Effektspektrum, første del signal')
+xlim([0 fs/2])
+
+%Plot af effekt
+subplot(2,2,4);
+plot(k2*fs/N2, 10*log10(P2))
+title('Effektspektrum, andet del signal')
+xlim([0 fs/2])
+
+%% MA-filter (ikke-rekursivt) variabler
 M = 16;    % filterkoefficienter
 hMA = 1/M*ones(1,M); % MA-filter, filterkoefficienter
 
