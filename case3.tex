@@ -229,10 +229,80 @@ Der er taget udgangspunkt i tidligere givne formel for udregning på billede bil
 Der kan udfra dette konkluderes 30 ville være maximalt antal filterkoefficienter der ville kunne anvendes for at opnår ønskede indsvingningstid, dog med forbehold af fs er 300, såfremt denne ændres, ville max antal indsvingningstid ligeledes ændre sig.
 
 \subsection{eksponentielt midlingsfilter}
-\label{sec:alfa}
+\label{sec:eks}
+\begin{lstlisting}
+%% Eksponentielt midlingsfilter (rekursivt) variabler
+alpha = 0.01;  % Lyons formel (11-31)
+
+% b skabes da filter funktionen giver problemer med at filtere samme værdi
+% 2 gange
+b = alpha;
+a = [1 -(1-alpha)];
+
+hExp_imp_resp  = filter(b,a,[1 zeros(1,4*M-1)]); % impulsrespons
+hExp_step_resp = filter(b,a,ones(1,4*M));        % steprespons
+
+HExp1 = fft(b,N1)./fft(a,N1);                 % frekvensrespons
+HExp2 = fft(b,N2)./fft(a,N2);                 % frekvensrespons
+
+yExp1 = filter(b,a,x1);                      % filtrerer 1 inputsignal
+yExp2 = filter(b,a,x2);                      % filtrerer 2 inputsignal
+
+var_yExp1 = var(yExp1(M:N1));  % varians i signal i del efter transientrespons
+var_yExp2 = var(yExp2(M:N2));  % varians i signal i del efter transientrespons
+
+\end{lstlisting}
+
+koden her viser til at starte med oprettelse af alfa variablen, denne er i eksemplet her sat til 0.01, koden er dog lavet på en måde således den er afhængig af denne variabel, og såfremt denne ændres til en andet ønsket værdi, reagerer koden herefter.
+årsagen til variablen b skabes, er at ellers giver det fejl længere nede ved oprettelse af vExp1/vExp2 når filteret skal pålægges med filter funktionen såfremt dette skal foregå med samme variabel to gange i træk, eller når Hexp1/Hexp2 skaber frekvensresponset.
+varians udregnes i de to del signaler afslutningsvist, og næste er at plotte.
+
+\begin{lstlisting}
+ %% plotting for første eksponentielle midlingsfilter (rekursivt) 
+figure('name', 'Første eksponentielle midlingsfilter-filter')
+subplot(3,1,1:2)
+plot(n1,x1), grid, hold on
+plot(n1,yExp1,'linewidth',2)
+xlabel('n'), ylabel('x(n)')
+title(['Eksponentielt midlingsfilter, \alpha = ' num2str(alpha)])
+legend('input','output')
+
+subplot(3,1,3)
+text(0,0.5,...
+    {['Eksponentielt midlingsfilter, \alpha = ' num2str(alpha)],...
+     ['Støjeffekt i inputsignal (varians):  ' num2str(var_x1)],...
+     ['Støjeffekt i outputsignal (varians): ' num2str(var_yExp1)],...
+     ['Reduktion i støjeffekt: ' num2str((var_x1/var_yExp1)) ' gange'],...
+     ['Reduktion i støjeffekt: ' num2str(10*log10(var_x1/var_yExp1)) ' dB']})
+ axis off
+\end{lstlisting}
+
+samme approach som før er igen anvendt, hvor der kun redegøres for første del signal, da anden plot sektion igen er identisk bortset fra x1, n1 og yExp1.
+første plot er det ikke filtreret signal, n1 over x1 i en plot funktion, denne bliver holdt således yExp1, som beskriver variansen i signalet efter pålagte filter, nu kan ses ovenpå.
+Afslutningsvist plottes værdierne for støjeffekten i input samt output, og reduktionen i støjeffekt antal gange, samt i decibel plottes.
+
 
 \subsection{Alfa's betydning}
 \label{sec:alfa}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{rod/hoj_alfa.png}
+  \caption{alfa på 0.8}
+  \label{fig:høj_alfa}
+\end{figure}
+
+\begin{figure}[h!]
+  \centering
+  \includegraphics[width=0.8\textwidth]{rod/lav_alfa.png}
+  \caption{alfa på 0.01}
+  \label{fig:lav_alfa}
+\end{figure}
+
+som billede \ref{fig:høj_alfa} og \ref{fig:lav_alfa} illustrerer kan der ses at mindre alpha giver bedre dæmpning, men langsommere respons, og omvendt.
+
+\subsection{ram samme værdi 100 filterkoefficienters MA filter}
+\label{sec:ram}
 
 \section{Systemovervejelser}
 \label{sec:Systemovervejelser}
