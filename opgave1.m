@@ -165,7 +165,7 @@ text(0,0.5,...
  axis off
  
   %% plotting for andet eksponentielle midlingsfilter (rekursivt) 
-figure('name', 'Første eksponentielle midlingsfilter-filter')
+figure('name', 'Andet eksponentielle midlingsfilter-filter')
 subplot(3,1,1:2)
 plot(n2,x2), grid, hold on
 plot(n2,yExp2,'linewidth',2)
